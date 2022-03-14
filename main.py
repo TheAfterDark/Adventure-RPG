@@ -8,7 +8,7 @@ import sys
 
 mixer.init()
 mixer.music.load("background.wav")
-mixer.music.play()
+mixer.music.play(-1)
 
 class Game:
     def __init__(self):
