@@ -2,7 +2,13 @@ import enum
 import pygame
 from sprites import *
 from config import *
+from pygame.locals import *
+from pygame import mixer
 import sys
+
+mixer.init()
+mixer.music.load("background.wav")
+mixer.music.play()
 
 class Game:
     def __init__(self):
@@ -10,6 +16,7 @@ class Game:
         self.screen = pygame.display.set_mode((win_width, win_height))
         self.clock = pygame.time.Clock()
         self.running = True
+
 
     def create_tilemap(self):
         for i, row in enumerate(tilemap):
