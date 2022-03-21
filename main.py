@@ -17,14 +17,18 @@ class Game:
         self.clock = pygame.time.Clock()
         self.running = True
 
+        self.character_spritesheet = spritesheet('img/character.png')
+        self.terrain_spritesheet = spritesheet('img/terrain.png')
+
 
     def create_tilemap(self):
         for i, row in enumerate(tilemap):
             for j, column in enumerate(row):
+                Ground(self, j, i)
                 if column == "B":
-                    Block(self,j,i)
+                    Block(self, j, i)
                 if column == "P":
-                    Player(self,j,i)
+                    Player(self, j, i)
 
 
     def new(self):
