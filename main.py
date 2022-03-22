@@ -19,6 +19,7 @@ class Game:
 
         self.character_spritesheet = spritesheet('img/character.png')
         self.terrain_spritesheet = spritesheet('img/terrain.png')
+        self.enemy_spritesheet = spritesheet('img/enemy.png')
 
 
     def create_tilemap(self):
@@ -27,8 +28,11 @@ class Game:
                 Ground(self, j, i)
                 if column == "B":
                     Block(self, j, i)
+                if column == 'E':
+                    Enemy(self, j, i)
                 if column == "P":
                     Player(self, j, i)
+                
 
 
     def new(self):
