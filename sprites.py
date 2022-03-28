@@ -16,7 +16,7 @@ class spritesheet:
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,game,x,y):
-
+        
         self.game = game
         self._layer = player_layer
         self.groups = self.game.all_sprites
@@ -41,13 +41,16 @@ class Player(pygame.sprite.Sprite):
         self.rect.y = self.y
 
     def update(self):
+
         self.movement()
         self.anime()
 
         self.rect.x += self.x_change
         self.collide_blocks('x')
+        self.collide_enemy()
         self.rect.y += self.y_change
         self.collide_blocks('y')
+        self.collide_enemy()
 
         self.x_change = 0
         self.y_change = 0
@@ -85,6 +88,11 @@ class Player(pygame.sprite.Sprite):
                 if self.y_change < 0:
                     self.rect.y = hits[0].rect.bottom 
 
+    def collide_enemy(self):
+        hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
+        if hits:
+            self.kill()
+            self.game.playing = False
 
     def anime(self):
         down_animations = [self.game.character_spritesheet.get_sprite(3, 2, self.width, self.height),
