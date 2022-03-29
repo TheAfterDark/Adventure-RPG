@@ -17,7 +17,7 @@ class Game:
         self.screen = pygame.display.set_mode((win_width, win_height))
         self.clock = pygame.time.Clock()
         self.running = True
-        #self.font = pygame.font.SysFont('arial', 32)
+        self.font = pygame.font.SysFont('arial', 32)
 
         self.character_spritesheet = spritesheet('img/character.png')
         self.terrain_spritesheet = spritesheet('img/terrain.png')

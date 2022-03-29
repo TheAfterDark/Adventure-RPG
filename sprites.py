@@ -46,7 +46,6 @@ class Player(pygame.sprite.Sprite):
         self.movement()
         self.anime()
         self.collide_enemy(self.player_health)
-        self.music()
 
         self.rect.x += self.x_change
         self.collide_blocks('x')
@@ -329,8 +328,8 @@ class Ground(pygame.sprite.Sprite):
 
 class Button:
     def __init__(self, x, y, width, height, content, fg, bg, fontsize):
-        #self.font = pygame.font.SysFont('arial', 32)
-        #self.content = content
+        self.font = pygame.font.SysFont('arial', 32)
+        self.content = content
 
         self.x = x
         self.y = y
@@ -343,3 +342,17 @@ class Button:
         self.image = pygame.Surface((self.width, self.height))
         self.image.fill(self.bg)
         self.rect = self.image.get_rect()
+
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+        self.text = self.font.render(self.content, True, self.fg)
+        self.text_rect = self.text.get_rect(center=(self.width/2, self.height/2))
+        self.image.blit(self.text, self.text_rect)
+
+    def is_pressed(self, pos, pressed):
+        if self.rect.collidepoint(pos):
+            if pressed[0]:
+                return True
+            return False
+        return False
