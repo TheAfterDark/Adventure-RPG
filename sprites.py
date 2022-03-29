@@ -17,6 +17,7 @@ class spritesheet:
 class Player(pygame.sprite.Sprite):
     def __init__(self,game,x,y):
         
+        self.player_health = 50
         self.game = game
         self._layer = player_layer
         self.groups = self.game.all_sprites
@@ -44,13 +45,13 @@ class Player(pygame.sprite.Sprite):
 
         self.movement()
         self.anime()
+        self.collide_enemy(self.player_health)
+        self.music()
 
         self.rect.x += self.x_change
         self.collide_blocks('x')
-        self.collide_enemy()
         self.rect.y += self.y_change
         self.collide_blocks('y')
-        self.collide_enemy()
 
         self.x_change = 0
         self.y_change = 0
@@ -88,11 +89,14 @@ class Player(pygame.sprite.Sprite):
                 if self.y_change < 0:
                     self.rect.y = hits[0].rect.bottom 
 
-    def collide_enemy(self):
+    def collide_enemy(self, player_health):
         hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
         if hits:
-            self.kill()
-            self.game.playing = False
+            self.player_health -= 1
+            print(self.player_health)
+            if self.player_health <= 0:
+                self.kill()
+                self.game.playing = False
 
     def anime(self):
         down_animations = [self.game.character_spritesheet.get_sprite(3, 2, self.width, self.height),
@@ -322,3 +326,20 @@ class Ground(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = self.x
         self.rect.y = self.y
+
+class Button:
+    def __init__(self, x, y, width, height, content, fg, bg, fontsize):
+        #self.font = pygame.font.SysFont('arial', 32)
+        #self.content = content
+
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+        self.fg = fg
+        self.bg = bg
+
+        self.image = pygame.Surface((self.width, self.height))
+        self.image.fill(self.bg)
+        self.rect = self.image.get_rect()
