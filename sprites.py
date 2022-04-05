@@ -92,7 +92,7 @@ class Player(pygame.sprite.Sprite):
         hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
         if hits:
             self.player_health -= 1
-            print(self.player_health)
+            print(player_health)
             if self.player_health <= 0:
                 self.kill()
                 self.game.playing = False
@@ -340,7 +340,7 @@ class Button:
         self.bg = bg
 
         self.image = pygame.Surface((self.width, self.height))
-        self.image.fill(self.bg)
+        self.image.fill((0,0,0))
         self.rect = self.image.get_rect()
 
         self.rect.x = self.x
@@ -353,6 +353,23 @@ class Button:
     def is_pressed(self, pos, pressed):
         if self.rect.collidepoint(pos):
             if pressed[0]:
-                return True
+               return True
             return False
         return False
+
+class health:
+    def __init__(self, player_health, x, y, width, height):
+        self.font = pygame.font.SysFont('arial', 32)
+        self.content = str(player_health)
+
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+
+        self.image = pygame.Surface((self.width, self.height))
+        self.rect = self.image.get_rect()
+
+        self.text = self.font.render(self.content, True, black)
+        self.text_rect = self.text.get_rect(center=(self.width/2, self.height/2))
+        self.image.blit(self.text, self.text_rect)
