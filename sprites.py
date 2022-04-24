@@ -1,7 +1,18 @@
+from os import kill
+from re import M, T
+from tkinter import W
+from turtle import _Screen, Screen
+from pip import main
 import pygame
 from config import *
 import math
 import random
+
+screen = pygame.display.set_mode((win_height, win_width))
+player_health = 50
+max_health = 50
+health_bar_length = 300
+health_ratio = max_health / health_bar_length
 
 class spritesheet:
     def __init__(self, file):
@@ -13,14 +24,48 @@ class spritesheet:
         sprite.set_colorkey(black)
         return sprite
 
+class Crown(pygame.sprite.Sprite):
+    def __init__(self,game,x,y):
+        self.game = game
+        self._layer = player_layer
+        self.groups = self.game.all_sprites, self.game.Crown
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.x = x * tilesize
+        self.y = y * tilesize
+        self.width = tilesize
+        self.height = tilesize
+
+        self.image = self.game.crown_spritesheet.get_sprite(0, 0, self.width, self.height)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
+
+class Banana(pygame.sprite.Sprite):
+    def __init__(self,game,x,y):
+        self.game = game
+        self._layer = player_layer
+        self.groups = self.game.all_sprites, self.game.Banana
+        pygame.sprite.Sprite.__init__(self, self.groups)
+
+        self.x = x * tilesize
+        self.y = y * tilesize
+        self.width = tilesize
+        self.height = tilesize
+
+        self.image = self.game.crown_spritesheet.get_sprite(0, 0, self.width, self.height)
+
+        self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
 
 class Player(pygame.sprite.Sprite):
     def __init__(self,game,x,y):
-        
-        self.player_health = 50
         self.game = game
         self._layer = player_layer
         self.groups = self.game.all_sprites
+
         pygame.sprite.Sprite.__init__(self,self.groups)
 
         self.x = x*tilesize
@@ -41,11 +86,41 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-    def update(self):
 
+    def get_damage(self,amount):
+        global player_health
+        if player_health > 0:
+            player_health -= amount
+        if player_health <= 0:
+            self.kill()
+            self.game.playing = False
+            player_health = max_health
+
+    def get_health(self,amount):
+        global player_health
+        if  player_health < max_health:
+            player_health += amount
+        if player_health >= max_health:
+            player_health = max_health
+    def collide_banana(self):
+        hits = pygame.sprite.spritecollide(self, self.game.Banana, False)
+        if hits:
+            Player.get_damage(self, 50)
+    def collide_enemy(self):
+        hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
+        if hits:
+            Player.get_damage(self,1)
+
+    def health_bar(self):
+        pygame.draw.rect(screen,(255,0,0),(10,10,player_health/health_ratio,25))
+        pygame.draw.rect(screen,(255,255,255),(10,10,health_bar_length,25),4)
+        pygame.display.update()
+
+    def update(self):
         self.movement()
         self.anime()
-        self.collide_enemy(self.player_health)
+        self.collide_enemy()
+        self.health_bar()
 
         self.rect.x += self.x_change
         self.collide_blocks('x')
@@ -58,15 +133,23 @@ class Player(pygame.sprite.Sprite):
     def movement(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
+            for sprite in self.game.all_sprites:
+                sprite.rect.x += player_speed
             self.x_change -= player_speed
             self.facing = 'left'
         if keys[pygame.K_RIGHT]:
+            for sprite in self.game.all_sprites:
+                sprite.rect.x -= player_speed
             self.x_change += player_speed
             self.facing = 'right'
         if keys[pygame.K_UP]:
+            for sprite in self.game.all_sprites:
+                sprite.rect.y += player_speed
             self.y_change -= player_speed
             self.facing = 'up'
         if keys[pygame.K_DOWN]:
+            for sprite in self.game.all_sprites:
+                sprite.rect.y -= player_speed
             self.y_change += player_speed
             self.facing = 'down'
 
@@ -75,27 +158,25 @@ class Player(pygame.sprite.Sprite):
             hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
             if hits:
                 if self.x_change > 0:
+                    for sprite in self.game.all_sprites:
+                        sprite.rect.x += player_speed
                     self.rect.x = hits[0].rect.left - self.rect.width
                 if self.x_change < 0:
+                    for sprite in self.game.all_sprites:
+                        sprite.rect.x -= player_speed
                     self.rect.x = hits[0].rect.right
 
         if direction == 'y':
             hits = pygame.sprite.spritecollide(self, self.game.blocks, False)
             if hits:
                 if self.y_change > 0:
+                    for sprite in self.game.all_sprites:
+                        sprite.rect.y += player_speed
                     self.rect.y = hits[0].rect.top - self.rect.height
-
                 if self.y_change < 0:
-                    self.rect.y = hits[0].rect.bottom 
-
-    def collide_enemy(self, player_health):
-        hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
-        if hits:
-            self.player_health -= 1
-            print(player_health)
-            if self.player_health <= 0:
-                self.kill()
-                self.game.playing = False
+                    for sprite in self.game.all_sprites:
+                        sprite.rect.y -= player_speed
+                    self.rect.y = hits[0].rect.bottom
 
     def anime(self):
         down_animations = [self.game.character_spritesheet.get_sprite(3, 2, self.width, self.height),
@@ -356,20 +437,85 @@ class Button:
                return True
             return False
         return False
+class Attack(pygame.sprite.Sprite):
+    def __init__(self, game, x, y):
 
-class health:
-    def __init__(self, player_health, x, y, width, height):
-        self.font = pygame.font.SysFont('arial', 32)
-        self.content = str(player_health)
+        self.game = game
+        self._Layer = player_layer
+        self.groups = self.game.all_sprites, self.game.attacks
+        pygame.sprite.Sprite.__init__(self, self.groups)
 
         self.x = x
         self.y = y
-        self.width = width
-        self.height = height
+        self.width = tilesize
+        self.height = tilesize
 
-        self.image = pygame.Surface((self.width, self.height))
+        self.animation_loop = 0
+
+        self.image = self.game.attack_spritesheet.get_sprite(0,0,self.width,self.height)
+
         self.rect = self.image.get_rect()
+        self.rect.x = self.x
+        self.rect.y = self.y
 
-        self.text = self.font.render(self.content, True, black)
-        self.text_rect = self.text.get_rect(center=(self.width/2, self.height/2))
-        self.image.blit(self.text, self.text_rect)
+    def update(self):
+        self.anime()
+        self.collide()
+
+    def collide(self):
+        hits = pygame.sprite.spritecollide(self, self.game.enemies, True)
+
+    def anime(self):
+
+        direction = self.game.player.facing
+        
+        right_animations = [self.game.attack_spritesheet.get_sprite(0, 64, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(32, 64, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(64, 64, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(96, 64, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(128, 64, self.width, self.height)]
+
+        down_animations = [self.game.attack_spritesheet.get_sprite(0, 32, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(32, 32, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(64, 32, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(96, 32, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(128, 32, self.width, self.height)]
+
+        left_animations = [self.game.attack_spritesheet.get_sprite(0, 96, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(32, 96, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(64, 96, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(96, 96, self.width, self.height),
+                           self.game.attack_spritesheet.get_sprite(128, 96, self.width, self.height)]
+
+        up_animations = [self.game.attack_spritesheet.get_sprite(0, 0, self.width, self.height),
+                         self.game.attack_spritesheet.get_sprite(32, 0, self.width, self.height),
+                         self.game.attack_spritesheet.get_sprite(64, 0, self.width, self.height),
+                         self.game.attack_spritesheet.get_sprite(96, 0, self.width, self.height),
+                         self.game.attack_spritesheet.get_sprite(128, 0, self.width, self.height)]
+
+        if direction == 'up':
+            self.image = up_animations[self.floor(self.animation_loop)]
+            self.animation_loop += 0.5
+            if self.animation_loop >= 5:
+                self.kill()
+
+        if direction == 'down':
+            self.image = down_animations[self.floor(self.animation_loop)]
+            self.animation_loop += 0.5
+            if self.animation_loop >= 5:
+                self.kill()
+
+        if direction == 'left':
+            self.image = left_animations[self.floor(self.animation_loop)]
+            self.animation_loop += 0.5
+            if self.animation_loop >= 5:
+                self.kill()
+
+        if direction == 'right':
+            self.image = right_animations[self.floor(self.animation_loop)]
+            self.animation_loop += 0.5
+            if self.animation_loop >= 5:
+                self.kill()
+
+
+

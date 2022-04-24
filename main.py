@@ -1,3 +1,4 @@
+from asyncio import events
 import enum
 import pygame
 from sprites import *
@@ -14,15 +15,20 @@ mixer.music.play(-1)
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((win_width, win_height))
+        global screen
+        screen = pygame.display.set_mode((win_width,win_height))
         self.clock = pygame.time.Clock()
         self.running = True
         self.font = pygame.font.SysFont('arial', 32)
 
+        self.crown_spritesheet = spritesheet('img/crown.png')
+        self.gameover_background = pygame.image.load('img/gameover.png')
         self.character_spritesheet = spritesheet('img/character.png')
         self.terrain_spritesheet = spritesheet('img/terrain.png')
+        self.attack_spritesheet = spritesheet('img/attack.png')
         self.enemy_spritesheet = spritesheet('img/enemy.png')
         self.intro_background = pygame.image.load('img/introbackground.png')
+        self.banana_spritesheet = spritesheet('img/Banana.png')
 
 
     def create_tilemap(self):
@@ -34,8 +40,11 @@ class Game:
                 if column == 'E':
                     Enemy(self, j, i)
                 if column == "P":
-                    Player(self, j, i)
-                
+                    self.player = Player(self, j, i)
+                if column == "F":
+                    Banana(self, j, i)
+                if column == "C":
+                    Crown(self, j, i)
 
 
     def new(self):
@@ -45,12 +54,10 @@ class Game:
         self.blocks = pygame.sprite.LayeredUpdates()
         self.enemies = pygame.sprite.LayeredUpdates()
         self.attacks = pygame.sprite.LayeredUpdates()
+        self.Banana = pygame.sprite.LayeredUpdates()
+        self.Crown = pygame.sprite.LayeredUpdates()
 
         self.create_tilemap()
-
-
-
-
 
     def events(self):
         for event in pygame.event.get():
@@ -58,12 +65,24 @@ class Game:
                 self.playing = False
                 self.running = False
 
+            if event.type == pygame.KEYDOWN:
+                if event.type == pygame.K_SPACE:
+                    if self.player.facing == 'up':
+                        Attack(self, self.player.rect.x, self.player.rect.y - tilesize)
+                    if self.player.facing == 'down':
+                        Attack(self, self.player.rect.x, self.player.rect.y + tilesize)
+                    if self.player.facing == 'left':
+                        Attack(self, self.player.rect.x - tilesize, self.player.rect.y)
+                    if self.player.facing == 'right':
+                        Attack(self, self.player.rect.x + tilesize, self.player.rect.y)
+
+
     def update(self):
         self.all_sprites.update()
 
     def draw(self):
-        self.screen.fill(black)
-        self.all_sprites.draw(self.screen)
+        screen.fill(black)
+        self.all_sprites.draw(screen)
         self.clock.tick(fps)
         pygame.display.update()
 
@@ -73,17 +92,33 @@ class Game:
             self.events()
             self.update()
             self.draw()
-        self.running = False
-
-    def healthy(self):
-        health_bar = health(50, 50, 50, 200, 50)
-        healthy = True
-        while healthy:
-            self.screen.blit(health_bar.image, health_bar.rect)
-            pygame.display.update()
 
     def game_over(self):
-        pass
+        text = self.font.render('Git Gud', True, white)
+        text_rect = text.get_rect(center=(win_width/2, win_height/2 - 50))
+
+        restart_button = Button(260, win_height/2 + 10, 120, 50,'Try Again', white, black, 32)
+
+        for sprite in self.all_sprites:
+            sprite.kill()
+
+        while self.running:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.running = False
+
+            mouse_pos = pygame.mouse.get_pos()
+            mouse_pressed = pygame.mouse.get_pressed()
+
+            if restart_button.is_pressed(mouse_pos, mouse_pressed):
+                self.new()
+                self.main()
+
+            screen.blit(self.gameover_background, (0,0))
+            screen.blit(text, text_rect)
+            screen.blit(restart_button.image, restart_button.rect)
+            self.clock.tick(fps)
+            pygame.display.update()
 
     def intro_screen(self):
         intro = True
@@ -106,9 +141,9 @@ class Game:
                 intro = False
 
 
-            self.screen.blit(self.intro_background, (0,0))
-            self.screen.blit(title, title_rect)
-            self.screen.blit(play_button.image, play_button.rect)
+            screen.blit(self.intro_background, (0,0))
+            screen.blit(title, title_rect)
+            screen.blit(play_button.image, play_button.rect)
             self.clock.tick(fps)
             pygame.display.update()
 
@@ -118,6 +153,5 @@ g.new()
 while g.running:
     g.main()
     g.game_over()
-    g.healthy()
 pygame.quit()
 sys.exit()
