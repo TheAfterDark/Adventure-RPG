@@ -45,6 +45,8 @@ class Game:
                     Banana(self, j, i)
                 if column == "C":
                     Crown(self, j, i)
+                if column == "A":
+                    Attack(self, j, i)
 
 
     def new(self):
@@ -65,8 +67,8 @@ class Game:
                 self.playing = False
                 self.running = False
 
-            if event.type == pygame.KEYDOWN:
-                if event.type == pygame.K_SPACE:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
                     if self.player.facing == 'up':
                         Attack(self, self.player.rect.x, self.player.rect.y - tilesize)
                     if self.player.facing == 'down':

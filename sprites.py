@@ -45,7 +45,7 @@ class Crown(pygame.sprite.Sprite):
 class Banana(pygame.sprite.Sprite):
     def __init__(self,game,x,y):
         self.game = game
-        self._layer = player_layer
+        self._layer = enemy_layer
         self.groups = self.game.all_sprites, self.game.Banana
         pygame.sprite.Sprite.__init__(self, self.groups)
 
@@ -54,7 +54,7 @@ class Banana(pygame.sprite.Sprite):
         self.width = tilesize
         self.height = tilesize
 
-        self.image = self.game.crown_spritesheet.get_sprite(0, 0, self.width, self.height)
+        self.image = self.game.banana_spritesheet.get_sprite(0, 0, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -86,7 +86,6 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = self.x
         self.rect.y = self.y
 
-
     def get_damage(self,amount):
         global player_health
         if player_health > 0:
@@ -102,10 +101,12 @@ class Player(pygame.sprite.Sprite):
             player_health += amount
         if player_health >= max_health:
             player_health = max_health
+
     def collide_banana(self):
         hits = pygame.sprite.spritecollide(self, self.game.Banana, False)
         if hits:
-            Player.get_damage(self, 50)
+            Player.get_health(self, 1)
+
     def collide_enemy(self):
         hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
         if hits:
@@ -119,6 +120,7 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         self.movement()
         self.anime()
+        self.collide_banana()
         self.collide_enemy()
         self.health_bar()
 
@@ -437,6 +439,7 @@ class Button:
                return True
             return False
         return False
+
 class Attack(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
 
@@ -452,7 +455,7 @@ class Attack(pygame.sprite.Sprite):
 
         self.animation_loop = 0
 
-        self.image = self.game.attack_spritesheet.get_sprite(0,0,self.width,self.height)
+        self.image = self.game.attack_spritesheet.get_sprite(0, 0, self.width, self.height)
 
         self.rect = self.image.get_rect()
         self.rect.x = self.x
@@ -494,25 +497,25 @@ class Attack(pygame.sprite.Sprite):
                          self.game.attack_spritesheet.get_sprite(128, 0, self.width, self.height)]
 
         if direction == 'up':
-            self.image = up_animations[self.floor(self.animation_loop)]
+            self.image = up_animations[math.floor(self.animation_loop)]
             self.animation_loop += 0.5
             if self.animation_loop >= 5:
                 self.kill()
 
         if direction == 'down':
-            self.image = down_animations[self.floor(self.animation_loop)]
+            self.image = left_animations[math.floor(self.animation_loop)]
             self.animation_loop += 0.5
             if self.animation_loop >= 5:
                 self.kill()
 
         if direction == 'left':
-            self.image = left_animations[self.floor(self.animation_loop)]
+            self.image = left_animations[math.floor(self.animation_loop)]
             self.animation_loop += 0.5
             if self.animation_loop >= 5:
                 self.kill()
 
         if direction == 'right':
-            self.image = right_animations[self.floor(self.animation_loop)]
+            self.image = right_animations[math.floor(self.animation_loop)]
             self.animation_loop += 0.5
             if self.animation_loop >= 5:
                 self.kill()
