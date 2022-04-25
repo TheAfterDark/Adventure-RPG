@@ -1,4 +1,2 @@
 # Adventure-RPG
-Adventure-RPG duh...
-Liam is sus
-fredy confirmed furry
+The Best Game 2022
