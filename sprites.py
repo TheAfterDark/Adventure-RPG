@@ -111,7 +111,12 @@ class Player(pygame.sprite.Sprite):
     def collide_enemy(self):
         hits = pygame.sprite.spritecollide(self, self.game.enemies, False)
         if hits:
-            Player.get_damage(self,1)
+            Player.get_damage(self,2)
+
+    def collide_crown(self):
+        hits = pygame.sprite.spritecollide(self, self.game.Crown, False)
+        if hits:
+            self.game.playing = False
 
     def health_bar(self):
         pygame.draw.rect(screen,(255,0,0),(10,10,player_health/health_ratio,25))
@@ -124,6 +129,7 @@ class Player(pygame.sprite.Sprite):
         self.collide_banana()
         self.collide_enemy()
         self.health_bar()
+        self.collide_crown()
 
         self.rect.x += self.x_change
         self.collide_blocks('x')
@@ -380,10 +386,10 @@ class Enemy(pygame.sprite.Sprite):
             if hits:
                 if self.y_change > 0:
                     self.rect.y = hits[0].rect.top - self.rect.height
-                    self.facing = random.choice(['up'])
+                    self.facing = "up"
                 if self.y_change < 0:
                     self.rect.y = hits[0].rect.bottom
-                    self.facing = random.choice(['dwon'])
+                    self.facing = "down"
 
 class Block(pygame.sprite.Sprite):
     def __init__(self, game, x, y):
