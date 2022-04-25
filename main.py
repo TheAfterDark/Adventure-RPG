@@ -21,6 +21,7 @@ class Game:
         self.running = True
         self.font = pygame.font.SysFont('arial', 32)
 
+        self.kirito_spritesheet = spritesheet('img/Kirito.png')
         self.crown_spritesheet = spritesheet('img/crown.png')
         self.gameover_background = pygame.image.load('img/gameover.png')
         self.character_spritesheet = spritesheet('img/character.png')
@@ -67,8 +68,8 @@ class Game:
                 self.playing = False
                 self.running = False
 
-            keys = pygame.key.get_pressed()
-            if keys[pygame.K_SPACE]:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
                     if self.player.facing == 'up':
                         Attack(self, self.player.rect.x, self.player.rect.y - tilesize)
                     if self.player.facing == 'down':
